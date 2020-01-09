@@ -154,6 +154,7 @@ export default {
         images: this.imgList,
         startPosition: index
       });
+      // push test
     },
     scaleAnime() {
       this.isShrink = false;
