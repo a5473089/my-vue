@@ -6,6 +6,14 @@ import "vant/lib/index.css";
 import waterfall from 'vue-waterfall2'
 import axios from 'axios'
 import axiosUtil from './axios/AxiosUtil.js' 
+import VueTouch from 'vue-touch'
+
+import VideoPlayer from 'vue-video-player'
+import 'vue-video-player/src/custom-theme.css'
+import 'video.js/dist/video-js.css'
+ 
+Vue.use(VideoPlayer)
+Vue.use(VueTouch, {name: 'v-touch'})
 
 Vue.config.productionTip = false
 Vue.use(Lazyload);
