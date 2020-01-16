@@ -1,6 +1,6 @@
 <template>
   <div id="home">
-    <van-tabs v-model="active" swipeable sticky>
+    <van-tabs v-model="active" sticky background="#b7c6b1">
       <van-tab v-for="tab in tabList" :title="tab.name" :key="tab.id" :name="tab.id">
         <keep-alive>
           <component :is="tab.component"/> 
@@ -44,7 +44,7 @@ export default {
 
 <style scoped>
 #home {
-  background-color: #e4e4e4;
+  background-color:#b2afb2;
   text-align: center;
   display: flex;
   justify-content: center;
@@ -54,11 +54,12 @@ export default {
   -webkit-overflow-scrolling: touch;
 }
 
-/deep/ .van-tab {
-  
+/deep/ .van-tab { 
+  height: 2.5rem; 
 }
 /deep/ .van-tabs__content {
-  height: calc(100% - 5rem);
+  height: calc(100vh - 2.5rem);
   width: 100vw;
 }
+
 </style>

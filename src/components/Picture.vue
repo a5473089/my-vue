@@ -74,24 +74,30 @@ export default {
           keyword: "scenery"
         }, 
         {
+          id: 2,
+          name: "明星",
+          keyword: "idol"
+        },
+        {
           id: 3,
           name: "美女",
           keyword: "girl"
         },
         {
           id: 4,
-          name: "城市",
+          name: "建筑",
           keyword: "city"
         },
         {
           id: 5,
-          name: "电影",
-          keyword: "movie"
+          name: "动漫",
+          keyword: "anime"
+          
         },
         {
           id: 6,
-          name: "动漫",
-          keyword: "anime"
+          name: "电影",
+          keyword: "movie"
         }
       ],
 
@@ -108,9 +114,6 @@ export default {
   // 列表页面
   created() {
     this.onSearch(this.active, this.versionNo);
-    this.$axiosUtils.initCategory(() => {
-      // this.tabList = result
-    });
   },
   computed: {
     itemWidth() {
@@ -132,7 +135,7 @@ export default {
       this.imgList = [];
       this.page = 1;
       this.versionNo++;
-      this.$axiosUtils.queryimgUrls(searchText, resultObj => {
+      this.$imgAxiosUtils.queryImgUrls(searchText, resultObj => {
         if (versionNo && this.versionNo > versionNo + 1) {
           return;
         }
@@ -180,7 +183,7 @@ export default {
     loadMore() {
       console.log("加载图片中···");
 
-      this.$axiosUtils.nextPage(this.page, this.searchId, imgList => {
+      this.$imgAxiosUtils.nextPage(this.page, this.searchId, imgList => {
         if (imgList.length == 0) {
           this.$toast({
             message: "拉到底啦",
@@ -204,19 +207,18 @@ export default {
 
 <style scoped>
 #picture {
-  /* background-color: #e4e4e4; */
   text-align: center;
   display: flex;
   justify-content: center;
   width: 100%;
-  height: calc(100vh - 5.5rem);
+  height: calc(100vh - 5.0rem);
   -webkit-overflow-scrolling: touch;
 }
 #imgList {
-  width: 98%;
-  /* background-color: #e4e4e4; */
+  width: 100%;
   /* opacity: 0.9; */
   /* padding: 5px 0; */
+  margin-top: 0.2rem;
 }
 #tail {
   position: fixed;

@@ -5,7 +5,8 @@ import Vant,{Lazyload} from "vant";
 import "vant/lib/index.css";
 import waterfall from 'vue-waterfall2'
 import axios from 'axios'
-import axiosUtil from './axios/AxiosUtil.js' 
+import imgAxiosUtil from './axios/ImgAxiosUtil.js' 
+import videoAxiosUtil from './axios/VideoAxiosUtil.js' 
 import VueTouch from 'vue-touch'
 
 import VideoPlayer from 'vue-video-player'
@@ -21,7 +22,8 @@ Vue.use(Vant);
 Vue.use(waterfall); 
 
 Vue.prototype.$axios = axios
-Vue.prototype.$axiosUtils = axiosUtil
+Vue.prototype.$videoAxiosUtils = videoAxiosUtil
+Vue.prototype.$imgAxiosUtils = imgAxiosUtil
 
 new Vue({
   el:"#app",
