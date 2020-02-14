@@ -1,4 +1,5 @@
 import axios from 'axios';
+import urlEncodeGBK from '../utils/urlEncodeGBK.js'
 
 export default {
     queryImgUrls: (searchText, callback) => {
@@ -10,10 +11,8 @@ export default {
                 location: resp.headers.location
             });
         }
-        if (searchText) {
-            encoding(searchText, encodingText => {
-                axios.post("/imgApi/e/search/index.php?searchText=" + encodingText).then(callbackMethod);
-            });
+        if (searchText) { 
+            axios.post("/imgApi/e/search/index.php?searchText=" + urlEncodeGBK.encodeURIComponent(searchText)).then(callbackMethod);
         } else {
             axios.get("/imgApi").then(callbackMethod);
         }
@@ -47,10 +46,4 @@ function getImgUris(str) {
     console.log(srcArr)
     return srcArr;
 }
-
-
-function encoding(str, callback) {
-    axios.post('/encode?searchText=' + str).then(response => {
-        callback(response.data.data[0]);
-    })
-}
+ 

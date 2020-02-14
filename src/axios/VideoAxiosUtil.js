@@ -1,14 +1,64 @@
 import axios from 'axios';
 
 const videoApi = "/videoApi"
+
+// http://v.kyikan.com/index.php?m=vod-list-id-1-pg-1-order--by--class-0-year--letter--area--lang-.html
+var conditionUrl = "?m=vod-list-id-1-pg-1-order--by--class-0-year--letter--area--lang-.html"
+var indexHref = "/index.php"
 export default {
-    queryImgUrls: (searchText, callback) => {
-        axios.get(videoApi).then(resp => {
-            callback(getImgUris(resp.data));
+    initTagTypeList: (callback) => {
+
+        axios.get(videoApi + indexHref + conditionUrl).then(resp => {
+            let htmlDom = parseToDOM(resp.data);
+            let typeList = htmlDom[16].getElementsByClassName("sy-nav-down")[0].getElementsByTagName("dl")
+            let tagTypeList = [];
+            typeList.forEach(type => {
+                let typeName = type.getElementsByTagName("dt")[0].getElementsByTagName("span")[0].innerHTML;
+                let childTypeList = type.getElementsByTagName("dd");
+
+                let tagList = [];
+                childTypeList.forEach(child => {
+                    let aDom = child.getElementsByTagName("a")[0];
+                    tagList.push({
+                        active: false,
+                        name: aDom.text,
+                        href: aDom.getAttribute("href")
+                    });
+                })
+                tagTypeList.push({
+                    active: false,
+                    title: typeName,
+                    tagList: tagList
+                });
+            })
+            callback(tagTypeList);
         });
+    },
+    queryImgUrls: (searchText, callback, href) => {
+        let cb = (resp, index) => {
+            callback(getImgUris(resp.data, index));
+        }
+        if (href) {
+            axios.get(videoApi + indexHref + href).then(resp => cb(resp, 16));
+            return;
+        }
+
+        if (searchText) {
+            axios({
+                method: 'post',
+                url: videoApi + "/index.php?m=vod-search",
+                data: "wd=" + encodeURI(searchText),
+                headers: {
+                    "Content-Type": "application/x-www-form-urlencoded"
+                }
+            }).then(cb);
+        } else {
+            axios.get(videoApi).then(cb);
+        }
+
 
     },
-    queryVideoInfo: (href, callback) => { 
+    queryVideoInfo: (href, callback) => {
         axios.get(videoApi + href).then(resp => {
             let htmlDom = parseToDOM(resp.data);
             let playListDom = htmlDom[17].getElementsByClassName("videourl")[0]
@@ -16,14 +66,15 @@ export default {
             playUrl(href, callback)
         });
     },
-   
+
 
 
     nextPage: (currPage, searchId, callback) => {
         axios.post("/api/e/search/result/index.php?page=" + currPage + "&searchid=" + searchId).then(resp => {
             callback(getImgUris(resp.data));
         });
-    }
+    },
+
 
 }
 
@@ -41,15 +92,20 @@ function playUrl(href, callback) {
         let idReg = /(base64decode\(')([^']+)('\))/i
         let token = infoHtmlStr.match(idReg);
         let idStr = unescape(base64decode(token[2]))
-        let idStrArr = idStr.split("#"); // 分段 
+        console.log(idStr)
+        // mac_from 
+        let sourceReg = /(mac_from=')([^']+)'?/i
+        let sourceObj = infoHtmlStr.match(sourceReg);
+        console.log(sourceObj)
 
-        getPlayUrl1().then(playUrl => {
+        let cb = playUrl => {
+            let idStrArr = idStr.split("#"); // 分段 
             let promiseArr = [];
             let titleArr = [];
             idStrArr.forEach((idStr, index) => {
                 let urlArr = idStr.split("$");
                 titleArr[index] = urlArr[0]
-                promiseArr[index] = getPlayUrl2(playUrl + urlArr[1])
+                promiseArr[index] = playUrl ? getPlayUrl2(playUrl + urlArr[1]) : urlArr[1];
             })
             Promise.all(promiseArr).then(hrefArr => {
                 hrefArr.forEach((href, index) => {
@@ -64,17 +120,28 @@ function playUrl(href, callback) {
                 callback(resultObj)
             })
 
-        })
+        }
+
+        if ("mp4" == sourceObj[2]) {
+            cb()
+        } else {
+            getPlayUrl1(sourceObj[2]).then(cb)
+        }
+
 
         document.getElementById("hiddenPage").innerHTML = '';
     });
 }
 
-async function getPlayUrl1() {
-    let resp = await axios.get(videoApi + "/player/qq.js");
+async function getPlayUrl1(source) {
+    let resp = await axios.get(videoApi + "/player/" + source + ".js");
     let iframeDom = parseToDOM(resp.data)
     let playUrl = iframeDom[1].getAttribute("src")
-    return playUrl.replace(/'\+MacPlayer\.PlayUrl\+'/i, '').replace("http://ckparse.kaizhoukm.com:2003", "/playApi")
+    playUrl = playUrl.replace(/'\+MacPlayer\.PlayUrl\+'/i, '')
+    if (source == 'qq') {
+        return playUrl.replace("http://ckparse.kaizhoukm.com:2003", "/playApi")
+    }
+    return playUrl;
 }
 async function getPlayUrl2(playUrl) {
     let resp = await axios.get(playUrl);
@@ -85,11 +152,12 @@ async function getPlayUrl2(playUrl) {
 }
 
 
-function getImgUris(str) {
+function getImgUris(str, index) {
 
     let htmlDom = parseToDOM(str);
+    console.log(htmlDom);
     // 电影模块
-    let movied = htmlDom[htmlDom.length - 1].getElementsByClassName("index-area")[0]
+    let movied = htmlDom[!index ? htmlDom.length - 1 : index].getElementsByClassName("index-area")[0]
     let ad = movied.getElementsByClassName("link-hover");
     let srcArr = [];
     for (let i = 0; i < ad.length; i++) {
@@ -102,7 +170,6 @@ function getImgUris(str) {
             title: title
         })
     }
-    console.log(srcArr);
     return srcArr;
 }
 

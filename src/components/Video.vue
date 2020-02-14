@@ -1,7 +1,7 @@
 <template>
   <div id="video">
     <!-- 列表 -->
-    <div id="videoList">
+    <div id="videoList" @click="searchShow = false">
       <van-grid :column-num="3" :gutter="10" :border="false">
         <van-grid-item
           v-for="(img,idx) in imgList"
@@ -25,8 +25,8 @@
         <van-icon v-show="!searchShow" name="arrow-left" />
       </span>
 
-      <van-row type="flex" v-for="(tagType,index) in tagTypeList" :key="index" gutter="20">
-        {{tagType.title}}：
+      <van-row v-for="(tagType,index) in tagTypeList" :key="index" gutter="20">
+        <van-col class="tagType">{{tagType.title}}：</van-col>
         <van-col v-for="(tag,tIndex) in tagType.tagList" :key="tIndex">
           <van-tag
             :color="tag.active ? '#ee0a24':'#667380'"
@@ -37,11 +37,11 @@
 
       <van-row>
         <van-search
-          show-action
-          action-text="搜索"
+          v-model="searchText"
           background="#4a4b4d"
           shape="round"
           placeholder="请输入搜索关键词"
+          @search="onSearch"
         />
       </van-row>
     </div>
@@ -88,6 +88,7 @@ export default {
   name: "Video",
   data() {
     return {
+      searchText: "",
       playList: [],
       playActiveTitle: "",
       dialogTitle: "",
@@ -95,86 +96,7 @@ export default {
       loading: true,
       searchShow: false,
       imgList: [],
-      tagTypeList: [
-        {
-          active: false,
-          title: "类型",
-          tagList: [
-            {
-              active: false,
-              name: "爱情"
-            },
-            {
-              active: false,
-              name: "爱情"
-            },
-            {
-              active: false,
-              name: "爱情"
-            },
-            {
-              active: false,
-              name: "爱情"
-            },
-            {
-              active: false,
-              name: "爱情"
-            }
-          ]
-        },
-        {
-          id: 2,
-          title: "类型",
-          tagList: [
-            {
-              active: false,
-              name: "爱情"
-            },
-            {
-              active: false,
-              name: "爱情"
-            },
-            {
-              active: false,
-              name: "爱情"
-            },
-            {
-              active: false,
-              name: "爱情"
-            },
-            {
-              active: false,
-              name: "爱情"
-            }
-          ]
-        },
-        {
-          id: 3,
-          title: "类型",
-          tagList: [
-            {
-              active: false,
-              name: "爱情"
-            },
-            {
-              active: false,
-              name: "爱情"
-            },
-            {
-              active: false,
-              name: "爱情"
-            },
-            {
-              active: false,
-              name: "爱情"
-            },
-            {
-              active: false,
-              name: "爱情"
-            }
-          ]
-        }
-      ],
+      tagTypeList: [],
       finished: false,
       playerOptions: {
         //播放速度
@@ -221,6 +143,11 @@ export default {
     this.$videoAxiosUtils.queryImgUrls("", result => {
       this.imgList = result;
     });
+
+    this.$videoAxiosUtils.initTagTypeList(result => {
+      console.log(result);
+      this.tagTypeList = result;
+    });
   },
   methods: {
     onLoad() {
@@ -233,11 +160,18 @@ export default {
           e.active = false;
         }
       });
+      this.$videoAxiosUtils.queryImgUrls(
+        "",
+        result => {
+          this.imgList = result;
+        },
+        tag.href
+      );
     },
     dialogWindow(obj) {
       this.loading = true;
       this.dialogTitle = obj.title;
-      this.dialogShow = !this.dialogShow;
+      this.dialogShow = true;
       this.playerOptions.sources[0].src = "";
 
       this.$videoAxiosUtils.queryVideoInfo(obj.href, srcObj => {
@@ -255,6 +189,13 @@ export default {
     changeVideo(obj) {
       this.playActiveTitle = obj.title;
       this.playerOptions.sources[0].src = obj.href;
+    },
+
+    onSearch(value) {
+      this.$videoAxiosUtils.queryImgUrls(value, result => {
+        this.imgList = result;
+        this.searchShow = false;
+      });
     }
   }
 };
@@ -267,7 +208,7 @@ export default {
   display: flex;
   justify-content: center;
   width: 100%;
-  height: calc(100vh - 2.5rem);
+  height: calc(100vh - 3rem);
   -webkit-overflow-scrolling: touch;
 }
 #videoList {
@@ -275,6 +216,7 @@ export default {
   margin: 0.2rem 0;
 }
 .title {
+  font-size: 0.8rem;
   width: 5.5rem;
   white-space: nowrap;
   text-overflow: ellipsis;
@@ -286,13 +228,13 @@ export default {
   position: fixed;
   bottom: 0;
   width: 85%;
-  padding-left: 1.5rem;
+  padding-left: 0.5rem;
   background-color: #4a4b4d;
   font-size: 0.8rem;
   color: white;
   border-top-left-radius: 0.5rem;
   border-bottom-left-radius: 0.5rem;
-  transition: left 0.3s ease-in;
+  transition: left 0.2s ease-in;
   opacity: 0.85;
 }
 .search-show {
@@ -314,7 +256,7 @@ export default {
   padding-left: 0.1rem;
   top: 2rem;
   height: 1.5rem;
-  line-height: 1.6rem;
+  line-height: 1.7rem;
   width: 1.3rem;
   left: -1.3rem;
   background-color: #4a4b4d;
@@ -325,7 +267,10 @@ export default {
   width: 0;
   height: 0;
 }
-
+.tagType {
+}
+/deep/ .van-tag {
+}
 /deep/ .van-grid-item__content {
   padding: 0;
 }
@@ -343,5 +288,4 @@ export default {
 /deep/ .van-search__action:active {
   background-color: #333638;
 }
-
 </style>

@@ -58,7 +58,7 @@ export default {
   height: 2.5rem; 
 }
 /deep/ .van-tabs__content {
-  height: calc(100vh - 2.5rem);
+  height: calc(100vh - 3rem);
   width: 100vw;
 }
 
