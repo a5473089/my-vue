@@ -2,7 +2,8 @@
   <div id="video">
     <!-- 列表 -->
     <div id="videoList" @click="searchShow = false">
-      <van-grid :column-num="3" :gutter="10" :border="false">
+      <van-loading v-if="searchLoading"  color="#1989fa"/>
+      <van-grid v-else :column-num="3" :gutter="10" :border="false">
         <van-grid-item
           v-for="(img,idx) in imgList"
           :key="idx"
@@ -29,6 +30,7 @@
         <van-col class="tagType">{{tagType.title}}：</van-col>
         <van-col v-for="(tag,tIndex) in tagType.tagList" :key="tIndex">
           <van-tag
+            class="typeTag"
             :color="tag.active ? '#ee0a24':'#667380'"
             @click="tabClick(tag,tagType.tagList)"
           >{{tag.name}}</van-tag>
@@ -88,6 +90,7 @@ export default {
   name: "Video",
   data() {
     return {
+      searchLoading:false,
       searchText: "",
       playList: [],
       playActiveTitle: "",
@@ -144,9 +147,9 @@ export default {
       this.imgList = result;
     });
 
-    this.$videoAxiosUtils.initTagTypeList(result => {
+    this.$videoAxiosUtils.initTagTypeList(result => { 
       console.log(result);
-      this.tagTypeList = result;
+      this.tagTypeList = [result[0]];
     });
   },
   methods: {
@@ -154,6 +157,9 @@ export default {
       console.log("视频加载中");
     },
     tabClick(tag, tagList) {
+      // loading
+      this.imgList = [];
+      this.searchLoading = true;
       tag.active = !tag.active;
       tagList.forEach(e => {
         if (e !== tag) {
@@ -164,6 +170,7 @@ export default {
         "",
         result => {
           this.imgList = result;
+          this.searchLoading = false;
         },
         tag.href
       );
@@ -192,9 +199,11 @@ export default {
     },
 
     onSearch(value) {
+      this.searchLoading = true;
       this.$videoAxiosUtils.queryImgUrls(value, result => {
         this.imgList = result;
         this.searchShow = false;
+        this.searchLoading = false;
       });
     }
   }
@@ -266,6 +275,9 @@ export default {
 #hiddenPage {
   width: 0;
   height: 0;
+}
+.typeTag{
+  margin-bottom: 0.2rem
 }
 .tagType {
 }
